@@ -73,7 +73,9 @@ Parallelism: smp, tbb, mpi4
 Installation
 1. Update conda
 
+```
 conda update conda
+```
 2. Create new empty environment, Python 3, and Intel’s Python 3.
 
 conda create -n intel -c intel intelpython3_full python=3
