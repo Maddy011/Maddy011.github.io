@@ -78,13 +78,21 @@ conda update conda
 ```
 2. Create new empty environment, Python 3, and Intel’s Python 3.
 
+```
 conda create -n intel -c intel intelpython3_full python=3
+```
 3. Enter environment
 
+```
 activate intel
+```
+
 4. Install packages
 
+```
 conda install numpy scipy scikit-learn pydaal tbb4py
+```
+
 In general, you do not need to change your Python code to take advantage of the improved performance Intel’s Python Distribution provides. However, for random number generators, we recommend using the MKL-based random number generator numpy.random_intel as a drop-in replacement for numpy.random.
 
 The update 1 of the Intel® Distribution for Python* 2017 Beta introduces numpy.random_intel, an extension to numpy which closely mirrors the design of numpy.random and uses Intel® MKL's vector statistics library to achieve a significant performance boost.
@@ -103,7 +111,7 @@ All you need to do to accelerate your pandas is to change a single line of code:
 What’s amazing about Modin is you can easily scale your workload to the cloud or a high-performance computing environment as needed.
 
 
-The with statement creates a remote execution context in the cloud, AWS in this case, with credentials provided by the user in aws_credentials.json. Modin automatically connects to AWS, spawns a cluster for distributed computation, provisions the Modin environment, then remotely executes all the Modin statements within the with clause.
+The ``` with ``` statement creates a remote execution context in the cloud, AWS in this case, with credentials provided by the user in aws_credentials.json. Modin automatically connects to AWS, spawns a cluster for distributed computation, provisions the Modin environment, then remotely executes all the Modin statements within the with clause.
 
 
 ## Intel® Extension for Scikit-learn*
