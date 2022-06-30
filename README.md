@@ -50,7 +50,7 @@ Gain direct access to analytics and AI optimizations from Intel to ensure that y
 Requirements and Intel DevCloud
 Unfortunately not every tool in Intel AI Toolkit supports Windows operating system and you will have to make sure that you satisfy other system requirements as well. For example, Intel AI Toolkit requires CPU: Intel Core Gen10 Processor or Intel Xeon Scalable Performance processors and Support for Intel Graphics (GPU) are yet to be added in a future release.
 
-
+[Intel® AI Analytics Toolkit System Requirements](https://www.intel.com/content/www/us/en/developer/articles/system-requirements/intel-oneapi-ai-analytics-toolkit-system-requirements.html)
 
 As our aim is to get started with the AI Toolkit with ease, I recommend using Intel DevCloud for OneAPI. Intel DevCloud is a development sandbox to learn about programming cross-architecture applications such as AI Analytics Toolkit. It’s completely free to use 120 days and we get around 200 GB of file storage, 192 GB RAM with various Intel Xeon processors and FPGAs. What’s more? They provide specific kernels for each toolkits making our learning experience seamless. To use the DevCloud you will first have to create your Intel DevCloud account and verify your account. Once verified, go to https://devcloud.intel.com/oneapi/get_started/ and scroll down. You will see something like this:
 
@@ -95,47 +95,97 @@ conda install numpy scipy scikit-learn pydaal tbb4py
 
 In general, you do not need to change your Python code to take advantage of the improved performance Intel’s Python Distribution provides. However, for random number generators, we recommend using the MKL-based random number generator numpy.random_intel as a drop-in replacement for numpy.random.
 
-The update 1 of the Intel® Distribution for Python* 2017 Beta introduces numpy.random_intel, an extension to numpy which closely mirrors the design of numpy.random and uses Intel® MKL's vector statistics library to achieve a significant performance boost.
+The update 1 of the Intel® Distribution for Python* 2017 Beta introduces `numpy.random_intel`, an extension to numpy which closely mirrors the design of `numpy.random` and uses Intel® MKL's vector statistics library to achieve a significant performance boost.
 
-Unlocking the performance benefits is as simple as replacing numpy.random with numpy.random_intel:
+Unlocking the performance benefits is as simple as replacing `numpy.random` with `numpy.random_intel`:
 
+```
+import numpy as np
+from numpy import random, random_intel
+
+%timeit np.random.rand(10**5)
+#1000 loops, best of 3: 1.05 ms per loop
+
+%timeit np.random_intel.rand(10**5)
+#10000 loops, best of 3: 146 µs per loop
+```
 
 For machine learning, Intel Distribution for Python provides deep learning software such as Caffe and Theano, as well as classic machine learning libraries, such as scikit-learn and pyDAAL (which implements Python bindings to Intel DAAL).
 
+[Intel® Distribution for Python*](https://www.intel.com/content/www/us/en/developer/tools/oneapi/distribution-for-python.html)
 
 ## Intel® Distribution of Modin
 Modin is a parallel and distributed data frame system that enables scalable Data Analytics. This library is OmniSci* in the back end and provides accelerated analytics on Intel® platforms. It’s fully compatible with the pandas API. Using Dask and Ray, Intel Distribution of Modin transparently distributes the data and computation across available cores, unlike pandas, which only uses one core at a time.
 
-All you need to do to accelerate your pandas is to change a single line of code: import modin.pandas as pd instead of import pandas as pd.
+All you need to do to accelerate your pandas is to change a single line of code: `import modin.pandas as pd` instead of `import pandas as pd`.
 
 What’s amazing about Modin is you can easily scale your workload to the cloud or a high-performance computing environment as needed.
 
+```
+import modin.pandas as pd
+from modin.experimental.cloud import cluster
+with cluster.create("aws", "aws_credentials"):
+    df = pd.read_csv('s3:filepath.csv')
+```
+The ``` with ``` statement creates a remote execution context in the cloud, AWS in this case, with credentials provided by the user in aws_credentials.json. Modin automatically connects to AWS, spawns a cluster for distributed computation, provisions the Modin environment, then remotely executes all the Modin statements within the `with` clause.
 
-The ``` with ``` statement creates a remote execution context in the cloud, AWS in this case, with credentials provided by the user in aws_credentials.json. Modin automatically connects to AWS, spawns a cluster for distributed computation, provisions the Modin environment, then remotely executes all the Modin statements within the with clause.
-
-
+[IntelModin_GettingStarted](https://github.com/oneapi-src/oneAPI-samples/tree/master/AI-and-Analytics/Getting-Started-Samples/IntelModin_GettingStarted)
 ## Intel® Extension for Scikit-learn*
-Intel® Extension for Scikit-learn* uses patching to accelerate Scikit-learn and still have full conformance with all Scikit-Learn APIs and algorithms.
+Intel® Extension for Scikit-learn* uses [patching](https://intel.github.io/scikit-learn-intelex/what-is-patching.html#term-patching) to accelerate Scikit-learn and still have full conformance with all Scikit-Learn APIs and algorithms.
 
+```
+from sklearnex import patch_sklearn
+patch_sklearn()
 
-We have only added two extra lines of code and the rest is the same as what we do for Scikit-learn.
+# Import datasets, svm classifier and performance metrics
+from sklearn import datasets, svm, metrics, preprocessing
+from sklearn.model_selection import train_test_split
 
-scikit-learn-intelex/examples/notebooks at master · intel/scikit-learn-intelex
-This folder contains examples of python notebooks that use Intel(R) extension for Scikit-learn for popular datasets.
-github.com
+# Load the handwritten digits dataset from sklearn datasets 
+digits = datasets.load_digits()
+
+# digits.data stores flattened ndarray size 64 from 8x8 images.
+X,Y = digits.data, digits.target
+
+# Split dataset into 80% train images and 20% test images
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, shuffle=True)
+
+# Create a classifier: a support vector classifier
+model = svm.SVC(gamma=0.001, C=100)
+
+# Learn the digits on the train subset
+model.fit(X_train, Y_train)
+
+# Now predicting the digit for test images
+Y_pred = model.predict(X_test)
+```
+
+As you can see that we have only added two extra lines of code:
+```
+from sklearnex import patch_sklearn
+patch_sklearn()
+```
+
+and the rest is the same as what we do for Scikit-learn.
+
+[scikit-learn-intelex-example-notebooks](https://github.com/intel/scikit-learn-intelex/tree/master/examples/notebooks)
 
 ## XGBoost Optimized by Intel
-Intel® AI Analytics Toolkit includes XGBoost with Intel optimizations for XPU. There are multiple ways to get the toolkit and its components. It is distributed through several channels — Anaconda, Docker containers, Package managers (Yum, Apt, Zypper) and an online/offline installer from Intel. To download XGBoost from the Intel® oneAPI AI Analytics Toolkit, visit here and choose the installation method of your choice. You can find more detailed information about the toolkit here.
+Intel® AI Analytics Toolkit includes XGBoost with Intel optimizations for XPU. There are multiple ways to get the toolkit and its components. It is distributed through several channels — Anaconda, Docker containers, Package managers (Yum, Apt, Zypper) and an online/offline installer from Intel. To download XGBoost from the Intel® oneAPI AI Analytics Toolkit, visit [here](https://www.intel.com/content/www/us/en/developer/tools/oneapi/ai-analytics-toolkit-download.html) and choose the installation method of your choice. You can find more detailed information about the toolkit [here](https://www.intel.com/content/www/us/en/developer/tools/oneapi/ai-analytics-toolkit.html).
 
 All we need to do is to install Intel® oneAPI AI Analytics Toolkit and run the XGBoost program. We don’t have to change anything inside the script.
 
+```
 import xgboost as xgb
+```
 If you get this message:
 
+```
 Intel(R) Extension for Scikit-learn* enabled (https://github.com/intel/scikit-learn-intelex) 
+```
 when importing Xgboost, it means that you’re using the intel optimized version for XgBoost!
 
-
+[Intel_ython_XGBoost_GettingStarted](https://github.com/oneapi-src/oneAPI-samples/tree/master/AI-and-Analytics/Getting-Started-Samples/IntelPython_XGBoost_GettingStarted)
 ## Intel® Optimization for TensorFlow*
 TensorFlow* is a leading deep learning and machine learning framework, which makes it important for Intel and Google to ensure that it is able to extract maximum performance from Intel’s hardware offering. Intel developed a number of optimized deep learning primitives that can be used inside the different deep learning frameworks to ensure that we implement common building blocks efficiently. In addition to matrix multiplication and convolution, these building blocks include:
 
@@ -147,33 +197,45 @@ Activation: rectified linear unit (ReLU)
 Data manipulation: multi-dimensional transposition (conversion), split, concat, sum and scale.
 To get hands-on practice, follow this github repository with instructions on how to run the notebook.
 
-models/docs/notebooks/transfer_learning/tf_image_classification at master · IntelAI/models
-This notebook uses transfer learning with multiple TF Hub image classifiers, TF datasets, and custom image datasets…
-github.com
+[Tensorflow image classification example](https://github.com/IntelAI/models/tree/master/docs/notebooks/transfer_learning/tf_image_classification)
 
 ## Intel® Optimization for PyTorch*
-Intel® Extension for PyTorch* extends PyTorch with optimizations for extra performance boost on Intel hardware. Intel® Extension for PyTorch* is loaded as a Python module for Python programs or linked as a C++ library for C++ programs. Users can enable it dynamically in script by importing intel_extension_for_pytorch. It covers optimizations for both imperative mode and graph mode. Optimized operators and kernels are registered through PyTorch dispatching mechanism. These operators and kernels are accelerated from native vectorization feature and matrix calculation feature of Intel hardware. During execution, Intel® Extension for PyTorch* intercepts invocation of ATen operators, and replace the original ones with these optimized ones. In graph mode, further operator fusions are applied manually by Intel engineers or through a tool named oneDNN Graph to reduce operator/kernel invocation overheads, and thus increase performance.
+Intel® Extension for PyTorch* extends PyTorch with optimizations for extra performance boost on Intel hardware. Intel® Extension for PyTorch* is loaded as a Python module for Python programs or linked as a C++ library for C++ programs. Users can enable it dynamically in script by importing`intel_extension_for_pytorch` It covers optimizations for both imperative mode and graph mode. Optimized operators and kernels are registered through PyTorch dispatching mechanism. These operators and kernels are accelerated from native vectorization feature and matrix calculation feature of Intel hardware. During execution, Intel® Extension for PyTorch* intercepts invocation of ATen operators, and replace the original ones with these optimized ones. In graph mode, further operator fusions are applied manually by Intel engineers or through a tool named oneDNN Graph to reduce operator/kernel invocation overheads, and thus increase performance.
 
 Installation
 You can use either of the following 2 commands to install Intel® Extension for PyTorch*.
 
+```
 python -m pip install intel_extension_for_pytorch
 python -m pip install intel_extension_for_pytorch -f https://software.intel.com/ipex-whl-stable
+```
 Note: Intel® Extension for PyTorch* has PyTorch version requirement. Please check more detailed information via the URL below.
 
-More installation methods can be found at Installation Guide.
 
-The following code snippet shows an inference code with FP32 data type. More examples, including training and C++ examples, are available at Example page.
+The following code snippet shows an inference code with FP32 data type. 
+```
+import torch
+import torchvision.models as models
 
+model = models.resnet50(pretrained=True)
+model.eval()
+data = torch.rand(1, 3, 224, 224)
 
-GitHub - intel/intel-extension-for-pytorch: A Python package for extending the official PyTorch…
-Intel® Extension for PyTorch* extends PyTorch with optimizations for extra performance boost on Intel hardware. Most of…
-github.com
+import intel_extension_for_pytorch as ipex
+model = model.to(memory_format=torch.channels_last)
+model = ipex.optimize(model)
+data = data.to(memory_format=torch.channels_last)
+
+with torch.no_grad():
+  model(data)
+```
+[Intel-extension-for-pytorch](https://github.com/intel/intel-extension-for-pytorch)
+
 
 ## Model Zoo for Intel® Architecture
 Open Model Zoo for OpenVINO™ toolkit delivers a wide variety of free, pre-trained deep learning models and demo applications that provide full application templates to help you implement deep learning in Python, C++, or OpenCV Graph API (G-API). Models and demos are available in the Open Model Zoo GitHub repo and licensed under Apache License Version 2.0.
 
-
+[GitHub - IntelAI/models: Model Zoo for Intel® Architecture](https://github.com/IntelAI/models)
 
 ## Intel® Neural Compressor
 Deep neural networks (DNNs) show state-of-the-art accuracy in a wide range of computation tasks. However, they still face challenges during application deployment due to their high computational complexity of inference. Low precision is one of the key techniques that help conquer the problem.
@@ -183,9 +245,28 @@ Intel® Neural Compressor is an open-source Python* library designed to help you
 Install:
 
 install stable version from pip
+
+```
 pip install neural-compressor
+```
 Quantization with Python API
 
+```
+# A TensorFlow Example
+pip install tensorflow
+# Prepare fp32 model
+wget https://storage.googleapis.com/intel-optimized-tensorflow/models/v1_6/mobilenet_v1_1.0_224_frozen.pb
+  
+import tensorflow as tf
+from neural_compressor.experimental import Quantization, common
+tf.compat.v1.disable_eager_execution()
+quantizer = Quantization()
+quantizer.model = './mobilenet_v1_1.0_224_frozen.pb'
+dataset = quantizer.dataset('dummy', shape=(1, 224, 224, 3))
+quantizer.calib_dataloader = common.DataLoader(dataset)
+quantizer.fit()
+```
+[Intel Neural Compressor Examples](https://github.com/intel/neural-compressor)
 
 Congratulations, you just learned about Intel® AI Analytics Toolkit and its tools which has an amazing potential to accelerate your future Data Science projects!
 
